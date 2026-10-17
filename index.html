@@ -1735,7 +1735,7 @@ const META = {
   program: '“师—生—机”协同教改项目 · 2024 级基础医学班',
   module: '水、电解质代谢紊乱（水 · 钠 · 钾）',
   moduleTag: '本次提交模块',
-  version: 'v1.0',
+  version: 'v1.0.1',
   date: '2026-10-17',
   assignment: '泌尿整合课程 · 病生 / 病理 / 药理三专业教学活动 · 知识图谱（5分）＋ 问题图谱（5分）',
   disclaimer: '本页为课程学习作品，医学内容依据教材、指南与已发表文献整理并人工核对，仅供教学与复习使用，不构成临床诊疗建议；临床决策请遵循所在机构规范与最新指南。'
@@ -1824,6 +1824,7 @@ const GUIDE = {
   ],
   versions: [
     { v: 'v1.0', date: '2026-10-17', note: '首次提交：水电解质紊乱模块知识图谱（65 节点 / 152 关系）+ 问题图谱（35 题）+ 病例 7 例 + 交互工具 + 设计说明。' },
+    { v: 'v1.0.1', date: '2026-10-17', note: '修复：完整图谱中点击节点/连线有时不弹出详情（pointer capture 导致 click 事件目标被重定向到画布）；改为按 pointerdown 记录目标、pointerup 判定点击，并补充真实指针流程的自动化测试。' },
     { v: '待更新', date: '课堂讲评后', note: '根据教师点评、同学投票与课堂讨论修订；补充"课堂使用与讲评记录"。' },
     { v: '后续模块', date: '本学期', note: '同一网址陆续加入其他教学模块（如急性肾损伤、肾小球疾病等），每次提交附本页链接与本次内容说明。' }
   ]
@@ -2594,6 +2595,46 @@ function kgMinimapHTML(layout) {
     '<rect id="kg-vp" fill="rgba(37,99,235,.10)" stroke="#2563eb" stroke-width="10" vector-effect="non-scaling-stroke" x="0" y="0" width="10" height="10" rx="6"/></svg>';
 }
 
+/* ---------- 拖拽状态（全局，避免 pointer capture 导致 click 目标被重定向到 svg） ---------- */
+const KG_DRAG = { active: false, svg: null, apply: null, trans: null, downTarget: null, sx: 0, sy: 0, ox: 0, oy: 0, moved: false };
+function kgBindDrag() {
+  if (APP._kgDragBound) return;
+  APP._kgDragBound = true;
+  document.addEventListener('pointermove', function (e) {
+    const d = KG_DRAG;
+    if (!d.active || !d.trans) return;
+    const dx = e.clientX - d.sx, dy = e.clientY - d.sy;
+    if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
+    d.trans.x = d.ox + dx;
+    d.trans.y = d.oy + dy;
+    if (d.apply) d.apply();
+  });
+  document.addEventListener('pointerup', function () {
+    const d = KG_DRAG;
+    if (!d.active) return;
+    d.active = false;
+    if (d.svg) d.svg.classList.remove('dragging');
+    const target = d.downTarget;
+    const movedFlag = d.moved;
+    d.svg = null; d.downTarget = null; d.trans = null;
+    if (!movedFlag) kgHandleGraphClick(target);
+  });
+  document.addEventListener('pointercancel', function () {
+    const d = KG_DRAG;
+    d.active = false;
+    if (d.svg) d.svg.classList.remove('dragging');
+    d.svg = null; d.downTarget = null; d.trans = null;
+  });
+}
+function kgHandleGraphClick(target) {
+  if (!target || !target.closest) { kgOnBlankClick(); return; }
+  const nodeEl = target.closest('[data-kg-node]');
+  if (nodeEl) { kgOnNodeClick(nodeEl.getAttribute('data-kg-node')); return; }
+  const edgeEl = target.closest('[data-kg-edge]');
+  if (edgeEl) { kgOnEdgeClick(Number(edgeEl.getAttribute('data-kg-edge'))); return; }
+  kgOnBlankClick();
+}
+
 /* ---------- 完整图谱：交互 ---------- */
 function setupKgGraph(host, visible) {
   const st = APP.state.kg;
@@ -2680,29 +2721,18 @@ function setupKgGraph(host, visible) {
     const r = svg.getBoundingClientRect();
     zoomAt(e.deltaY < 0 ? 1.1 : 0.91, e.clientX - r.left, e.clientY - r.top);
   }, { passive: false });
-  let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
-  function endDrag() { dragging = false; svg.classList.remove('dragging'); }
+  kgBindDrag();
   svg.addEventListener('pointerdown', function (e) {
-    if (e.button !== 0) return;
-    dragging = true; moved = false; sx = e.clientX; sy = e.clientY; ox = trans.x; oy = trans.y;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    KG_DRAG.active = true;
+    KG_DRAG.svg = svg;
+    KG_DRAG.apply = apply;
+    KG_DRAG.trans = trans;
+    KG_DRAG.downTarget = e.target;
+    KG_DRAG.sx = e.clientX; KG_DRAG.sy = e.clientY;
+    KG_DRAG.ox = trans.x; KG_DRAG.oy = trans.y;
+    KG_DRAG.moved = false;
     svg.classList.add('dragging');
-    try { if (svg.setPointerCapture) svg.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-  });
-  svg.addEventListener('pointermove', function (e) {
-    if (!dragging) return;
-    const dx = e.clientX - sx, dy = e.clientY - sy;
-    if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
-    trans.x = ox + dx; trans.y = oy + dy; apply();
-  });
-  svg.addEventListener('pointerup', endDrag);
-  svg.addEventListener('pointercancel', endDrag);
-  svg.addEventListener('click', function (e) {
-    if (moved) return;
-    const nodeEl = e.target.closest ? e.target.closest('[data-kg-node]') : null;
-    if (nodeEl) { kgOnNodeClick(nodeEl.getAttribute('data-kg-node'), layout, trans, size, fitNodes); return; }
-    const edgeEl = e.target.closest ? e.target.closest('[data-kg-edge]') : null;
-    if (edgeEl) { kgOnEdgeClick(Number(edgeEl.getAttribute('data-kg-edge'))); return; }
-    kgOnBlankClick();
   });
   svg.addEventListener('dblclick', function (e) {
     const nodeEl = e.target.closest ? e.target.closest('[data-kg-node]') : null;
@@ -2801,7 +2831,7 @@ function setupKgGraph(host, visible) {
 }
 
 /* ---------- 节点/连线点击 ---------- */
-function kgOnNodeClick(id, layout, trans, size, fitNodes) {
+function kgOnNodeClick(id) {
   const st = APP.state.kg;
   if (st.pathMode) {
     if (!st.pathStart) {
@@ -2820,7 +2850,6 @@ function kgOnNodeClick(id, layout, trans, size, fitNodes) {
   st.selected = id; st.edgeSelected = null; APP.kgPathError = false;
   try { if (APP.state.route === 'knowledge') history.replaceState(null, '', '#/knowledge?node=' + encodeURIComponent(id)); } catch (e) { }
   kgApplyHighlight(); kgRenderDetail(); kgRenderOverlay();
-  if (layout && trans && size && fitNodes) { /* 保留当前视野，不强制居中 */ }
 }
 function kgOnEdgeClick(idx) {
   const st = APP.state.kg;
