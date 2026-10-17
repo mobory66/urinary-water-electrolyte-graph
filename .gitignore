@@ -1,0 +1,29 @@
+# 本地部署与账号信息（含密码，切勿提交到 GitHub）
+_deploy/node_modules/
+_deploy/.npmcache/
+_deploy/screens/
+_deploy/账号与发布信息.txt
+_deploy/邮箱账号.json
+_deploy/*.log
+_deploy/*.txt
+_deploy/*.json
+!_deploy/package.json
+!_deploy/package-lock.json
+
+# 冒烟测试依赖与输出
+_tools/smoke/node_modules/
+_tools/smoke/.npmcache/
+_tools/smoke/out.json
+_tools/smoke/err.txt
+_tools/smoke/npm.log
+
+# 构建中间产物
+_build/
+
+# 本地演示用预览截图（体积较大，不提交）
+docs/previews/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
