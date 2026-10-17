@@ -26,7 +26,7 @@ python _tools/build.py
 # 3. 等 1～2 分钟，刷新 GitHub Pages 网址即可
 ```
 
-详细步骤见 [docs/GitHub维护指南.md](docs/GitHub维护指南.md)。
+详细步骤见 [GitHub维护指南.md](GitHub维护指南.md)。
 
 ## 目录结构
 
