@@ -3600,22 +3600,12 @@ APP.views.overview = function () {
         '<div class="stage-strip">' + stageCards + '</div>' +
       '</div>' +
       '<div class="card card-pad">' +
-        '<div class="section-title" style="font-size:16px"><span class="num">Ⅱ</span>本次提交信息</div>' +
-        '<dl class="info-list" style="margin-top:12px">' +
-          '<dt>课程</dt><dd>' + esc(META.course) + '</dd>' +
-          '<dt>项目</dt><dd>' + esc(META.program) + '</dd>' +
-          '<dt>模块</dt><dd>' + esc(META.module) + '（本次提交）</dd>' +
-          '<dt>作业</dt><dd>' + esc(META.assignment) + '</dd>' +
-          '<dt>版本</dt><dd>' + esc(META.version) + '（' + esc(META.date) + '）</dd>' +
-          '<dt>提交网址</dt><dd><a href="' + esc(META.links.self) + '">' + esc(META.links.self) + '</a></dd>' +
-          '<dt>提交形式</dt><dd>本页网址链接 ＋ 简要说明（AI 工具、设计思路、使用说明、特点/优点）</dd>' +
-          '<dt>署名</dt><dd class="muted" style="font-weight:400">（按评分要求不在页面展示个人信息；提交时可在作业板块填写）</dd>' +
-        '</dl>' +
-        '<div class="hr"></div>' +
         '<div class="panel-title"><span class="dot"></span>模块与后续更新</div>' +
         '<div class="module-cards">' +
           '<div class="module-card current"><div class="mc-tag">本次提交 · ' + esc(META.version) + '</div><h4>水、电解质代谢紊乱（水·钠·钾）</h4><p>知识图谱 + 问题图谱 + 7 病例 + 学习工具，覆盖病生 / 病理 / 药理三个专业教学活动。</p></div>' +
-          '<div class="module-card"><div class="mc-tag" style="color:#0f766e">模块二 · 已完成</div><h4>肾功能不全的基本发病环节与急性肾损伤</h4><p><a href="' + esc(META.links.module2) + '" style="color:#0f766e;font-weight:700">打开模块二页面 →</a> 同一课程的另一份图谱作品，独立网址；顶部「⇄ 模块二」可随时切换。</p></div>' +
+          ((META.links.modules || []).filter(function (m) { return m.url !== META.links.self; }).map(function (m) {
+            return '<div class="module-card"><div class="mc-tag" style="color:#0f766e">' + esc(m.label) + ' · 已完成</div><h4>' + esc(m.title) + '</h4><p><a href="' + esc(m.url) + '" style="color:#0f766e;font-weight:700">打开' + esc(m.label) + '页面 →</a> 同一课程的另一份图谱作品，独立网址；顶部「⇄ ' + esc(m.label) + '」可随时切换。</p></div>';
+          }).join('')) +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -3970,7 +3960,7 @@ APP.views.guide = function () {
             '<tr><th>提交网址</th><td><a href="' + esc(META.links.self) + '">' + esc(META.links.self) + '</a></td></tr>' +
             '<tr><th>一句话说明</th><td>本作品用“生理—病生—病理—药理—临床”五层结构整合水电解质紊乱知识图谱（65 节点/152 关系），并设计 35 个 100% 溯源知识节点的问题图谱（三级问题、四类问题、机制探究占 ' + APP.stats.mechPct + '%），附 7 个临床病例与交互学习工具；AI 仅用于生成初稿与网页代码，医学内容逐条对照教材、指南与 PubMed 文献人工核对。</td></tr>' +
           '</tbody></table>' +
-          '<div class="note-box" style="margin-top:12px"><b>提交提示：</b>把本页网址粘贴到作业板块即可；页面顶部/页脚的「⇄ 模块二」按钮可切换到模块二（肾功能不全与急性肾损伤，独立网址 <a href="' + esc(META.links.module2) + '">' + esc(META.links.module2) + '</a>），两页可互相切换。若需展示课堂使用记录，可在下方补充。</div>' +
+          '<div class="note-box" style="margin-top:12px"><b>提交提示：</b>把本页网址粘贴到作业板块即可；页面顶部与页脚有切换按钮，可切换到模块二（<a href="' + esc(META.links.module2) + '">' + esc(META.links.module2) + '</a>）与模块三（<a href="' + esc(META.links.module3) + '">' + esc(META.links.module3) + '</a>），三个模块可互相切换。若需展示课堂使用记录，可在下方补充。</div>' +
         '</section>' +
         '<section class="guide-section" id="g-ai"><h2>AI 工具使用说明</h2><div class="sec-sub">对应作业要求：说明所用 AI 工具、设计思路、使用说明、特点/优点，并体现“审核后再提交”。</div>' +
           '<p>' + esc(GUIDE.ai.intro) + '</p>' +
