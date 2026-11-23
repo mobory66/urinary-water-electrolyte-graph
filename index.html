@@ -1740,11 +1740,17 @@ const META = {
   program: '“师—生—机”协同教改项目 · 2024 级基础医学班',
   module: '水、电解质代谢紊乱（水 · 钠 · 钾）',
   moduleTag: '本次提交模块',
-  version: 'v1.1',
-  date: '2026-11-05',
+  version: 'v1.2',
+  date: '2026-11-23',
   links: {
     self: 'https://mobory66.github.io/urinary-water-electrolyte-graph/',
-    module2: 'https://mobory66.github.io/urinary-aki-graph/'
+    module2: 'https://mobory66.github.io/urinary-aki-graph/',
+    module3: 'https://mobory66.github.io/urinary-gn-graph/',
+    modules: [
+      { label: '模块一', title: '水、电解质代谢紊乱', url: 'https://mobory66.github.io/urinary-water-electrolyte-graph/' },
+      { label: '模块二', title: '肾功能不全与急性肾损伤', url: 'https://mobory66.github.io/urinary-aki-graph/' },
+      { label: '模块三', title: '肾小球肾炎的发病机制与常见类型', url: 'https://mobory66.github.io/urinary-gn-graph/' }
+    ]
   },
   assignment: '泌尿整合课程 · 病生 / 病理 / 药理三专业教学活动 · 知识图谱（5分）＋ 问题图谱（5分）',
   disclaimer: '本页为课程学习作品，医学内容依据教材、指南与已发表文献整理并人工核对，仅供教学与复习使用，不构成临床诊疗建议；临床决策请遵循所在机构规范与最新指南。'
@@ -1832,6 +1838,7 @@ const GUIDE = {
     { item: '托伐普坦机制', ai: 'AI 初稿写"托伐普坦排水也排钠"', fixed: '更正为"V2 受体拮抗→排水为主（aquaresis），相对不排钠→升高血钠"', basis: 'NEJM SALT 研究（PMID 17105757）' }
   ],
   versions: [
+    { v: 'v1.2', date: '2026-11-23', note: '增加模块三（肾小球肾炎的发病机制与常见类型）切换入口，三模块可互相切换。' },
     { v: 'v1.0', date: '2026-10-17', note: '首次提交：水电解质紊乱模块知识图谱（65 节点 / 152 关系）+ 问题图谱（35 题）+ 病例 7 例 + 交互工具 + 设计说明。' },
     { v: 'v1.0.1', date: '2026-10-17', note: '修复：完整图谱中点击节点/连线有时不弹出详情（pointer capture 导致 click 事件目标被重定向到画布）；改为按 pointerdown 记录目标、pointerup 判定点击，并补充真实指针流程的自动化测试。' },
     { v: 'v1.1', date: '2026-11-05', note: '增加「切换模块二：急性肾损伤」入口（独立网址 https://mobory66.github.io/urinary-aki-graph/ ），两页可双向跳转；正文内容未改。' },
@@ -2054,7 +2061,7 @@ function renderShell() {
       '</div>' +
       '<nav class="main-nav' + (APP.state.menuOpen ? ' open' : '') + '" id="main-nav">' + navHTML() + '</nav>' +
       '<div class="header-right">' +
-        '<a class="module-switch" href="' + esc(META.links.module2) + '" title="切换到模块二：急性肾损伤">⇄ 模块二</a>' +
+        ((META.links.modules || []).filter(function (m) { return m.url !== META.links.self; }).map(function (m) { return '<a class="module-switch" href="' + esc(m.url) + '" title="切换到' + esc(m.label) + '">⇄ ' + esc(m.label) + '</a>'; }).join('')) +
         '<button class="search-btn" id="btn-search"><span class="label">搜索</span><kbd>/</kbd></button>' +
         '<span class="version-pill" title="版本">' + esc(META.version) + ' · 2026 秋</span>' +
         '<button class="menu-btn" id="btn-menu" aria-label="菜单">☰</button>' +
@@ -2062,7 +2069,7 @@ function renderShell() {
     '</div></header>' +
     '<main class="page" id="view"></main>' +
     '<footer class="site-footer"><div class="footer-inner">' +
-      '<span>© 2026 泌尿整合课程 · 水电解质紊乱模块 · ' + esc(META.version) + '（' + esc(META.date) + '）· <a href="' + esc(META.links.module2) + '" style="color:inherit;text-decoration:underline">切换到模块二：急性肾损伤</a></span>' +
+      '<span>© 2026 泌尿整合课程 · 水电解质紊乱模块 · ' + esc(META.version) + '（' + esc(META.date) + '）· 切换：' + (META.links.modules || []).filter(function (m) { return m.url !== META.links.self; }).map(function (m) { return '<a href="' + esc(m.url) + '" style="color:inherit;text-decoration:underline">' + esc(m.label) + '</a>'; }).join(' · ') + '</span>' +
       '<div class="footer-links">' + ROUTES.map(r => '<button data-nav="' + r.id + '">' + r.label + '</button>').join('') +
         '<button data-nav="guide" data-anchor="refs">参考文献</button><button data-nav="guide" data-anchor="record">课堂记录</button></div>' +
     '</div></footer>' +
